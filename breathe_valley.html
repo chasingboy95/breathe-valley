@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>息谷 | 艺术化呼吸辅助与数字冥想</title>
+    <!-- Tailwind CSS 引入 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts 引入 (引入柔和圆润的 Comfortaa 和 Noto Sans) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;500;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Noto Sans SC', 'sans-serif'],
+                        display: ['Comfortaa', 'sans-serif'],
+                    },
+                    colors: {
+                        valley: {
+                            deep: 'rgb(var(--valley-deep) / <alpha-value>)',
+                            dark: 'rgb(var(--valley-dark) / <alpha-value>)',
+                            card: 'rgb(var(--valley-card) / 0.62)',
+                            accent: 'rgb(var(--valley-accent) / <alpha-value>)',
+                            inhale: 'rgb(var(--valley-inhale) / <alpha-value>)',
+                            hold: 'rgb(var(--valley-hold) / <alpha-value>)',
+                            exhale: 'rgb(var(--valley-exhale) / <alpha-value>)',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --valley-deep: 8 18 34;
+            --valley-dark: 15 30 51;
+            --valley-card: 28 46 72;
+            --valley-accent: 125 241 211;
+            --valley-inhale: 56 189 248;
+            --valley-hold: 129 140 248;
+            --valley-exhale: 45 212 191;
+            --valley-bg-base: 5 13 26;
+            --valley-bg-spot-1: 56 189 248;
+            --valley-bg-spot-2: 129 140 248;
+            --valley-bg-spot-3: 45 212 191;
+        }
+
+        /* 极致柔和的流体背景 */
+        body {
+            background-color: rgb(var(--valley-bg-base));
+            background-image: 
+                radial-gradient(at 10% 20%, rgb(var(--valley-bg-spot-1) / 0.14) 0px, transparent 52%),
+                radial-gradient(at 90% 10%, rgb(var(--valley-bg-spot-2) / 0.12) 0px, transparent 50%),
+                radial-gradient(at 50% 80%, rgb(var(--valley-bg-spot-3) / 0.1) 0px, transparent 52%);
+            background-size: 100% 100%;
+            overflow-x: hidden;
+            transition: background-color 420ms ease, background-image 420ms ease;
+        }
+
+        /* 液态球混合滤镜 */
+        .liquid-container {
+            filter: url('#liquid-filter');
+        }
+
+        /* 呼吸球光圈渐变过渡 */
+        .glow-ring {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 隐藏滚动条 */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fadeIn {
+            animation: fadeIn 320ms ease-out;
+        }
+    </style>
+</head>
+<body class="font-sans text-slate-200 h-full flex flex-col justify-between">
+
+    <!-- 顶部导航栏 -->
+    <header class="w-full px-6 py-4 flex justify-between items-center z-10 border-b border-white/5 backdrop-blur-md bg-valley-deep/40">
+        <div class="flex items-center space-x-3">
+            <!-- 艺术化 Logo -->
+            <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-valley-inhale to-valley-exhale flex items-center justify-center shadow-lg shadow-valley-inhale/20 animate-pulse">
+                <svg class="w-5 h-5 text-valley-deep" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                </svg>
+            </div>
+            <div>
+                <h1 class="font-display font-bold text-lg tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">Breathe Valley</h1>
+                <p class="text-[10px] text-slate-500 tracking-widest uppercase">息谷冥想</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+            <!-- 声音状态指示 -->
+            <button id="soundToggleBtn" onclick="toggleSound()" class="p-2.5 rounded-full bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-300 relative group" title="开启/关闭声音引导" aria-pressed="false" aria-label="开启声音引导">
+                <svg id="soundOnIcon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+                </svg>
+                <svg id="soundOffIcon" class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zm11.364-3.536l3.536 3.536m0-3.536l-3.536 3.536"/>
+                </svg>
+                <div class="absolute right-0 top-12 hidden group-hover:block bg-valley-dark text-slate-300 text-xs py-1 px-2.5 rounded border border-white/10 whitespace-nowrap z-20">声学引导已关闭</div>
+            </button>
+
+            <!-- 帮助说明 -->
+            <button id="helpToggleBtn" onclick="toggleHelpModal(true)" class="p-2.5 rounded-full bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-all" title="查看使用说明" aria-label="查看使用说明" aria-expanded="false">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- 主要工作区 -->
+    <main class="flex-grow w-full max-w-7xl mx-auto px-4 md:px-8 py-6 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        
+        <!-- 左侧: 呼吸动画大视窗 (占 7 格) -->
+        <section class="lg:col-span-7 flex flex-col items-center justify-center relative min-h-[450px] lg:min-h-[500px]">
+            
+            <!-- 环境发光底座 -->
+            <div id="ambientGlow" class="absolute pointer-events-none w-[320px] h-[320px] md:w-[400px] md:h-[400px] rounded-full blur-[100px] bg-valley-inhale/10 opacity-60"></div>
+
+            <!-- 主呼吸球区域 -->
+            <div class="relative w-[300px] h-[300px] md:w-[380px] md:h-[380px] flex items-center justify-center">
+                
+                <!-- 轨道外环 -->
+                <svg class="absolute w-full h-full rotate-[-90deg]">
+                    <circle cx="50%" cy="50%" r="48%" class="stroke-slate-800 fill-none" stroke-width="2" />
+                    <!-- 动态环形进度条 -->
+                    <circle id="progressRing" cx="50%" cy="50%" r="48%" class="stroke-valley-accent fill-none transition-all duration-100" stroke-width="3" stroke-dasharray="1150" stroke-dashoffset="1150" stroke-linecap="round" />
+                </svg>
+
+                <!-- 波动扩散光晕 (呼吸反馈涟漪) -->
+                <div id="pulseRipple" class="absolute pointer-events-none w-[180px] h-[180px] rounded-full border border-valley-inhale/30 opacity-0 scale-100"></div>
+
+                <!-- 液体呼吸核心 -->
+                <div class="liquid-container absolute pointer-events-none w-[180px] h-[180px] md:w-[220px] md:h-[220px] flex items-center justify-center">
+                    <!-- 融合变形底层球 1 -->
+                    <div id="liquidBall1" class="absolute w-full h-full rounded-[45%_55%_50%_50%/_50%_45%_55%_50%] bg-gradient-to-tr from-blue-600/80 to-purple-500/80 blur-[2px] transform-gpu" style="transform: scale(1);"></div>
+                    <!-- 融合变形底层球 2 -->
+                    <div id="liquidBall2" class="absolute w-full h-full rounded-[50%_50%_45%_55%/_45%_55%_50%_50%] bg-gradient-to-bl from-teal-500/70 to-blue-500/70 blur-[4px] opacity-80 transform-gpu rotate-45" style="transform: scale(0.95);"></div>
+                </div>
+
+                <!-- 浮于上层的精细文字和计时器 (不被滤镜模糊) -->
+                <div class="absolute text-center z-10 flex flex-col items-center justify-center pointer-events-none">
+                    <!-- 当前呼吸行为提示 -->
+                    <span id="breathAction" class="font-sans font-medium text-2xl md:text-3xl tracking-widest text-white transition-all duration-500 transform translate-y-0 opacity-100">开始</span>
+                    <!-- 倒计时数 -->
+                    <span id="breathTimer" class="font-display font-light text-5xl md:text-6xl text-white/90 mt-1">00</span>
+                    <!-- 状态辅助描述 -->
+                    <span id="breathSubAction" class="text-xs tracking-widest text-slate-400 mt-2 uppercase transition-all duration-300">息谷空间已就绪</span>
+                </div>
+
+                <!-- 流体变形核心 SVG 滤镜定义 -->
+                <svg class="hidden">
+                    <defs>
+                        <filter id="liquid-filter">
+                            <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+                            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9" result="liquid" />
+                            <feComposite in="SourceGraphic" in2="liquid" operator="atop" />
+                        </filter>
+                    </defs>
+                </svg>
+            </div>
+
+            <!-- 底部主要交互控制条 -->
+            <div class="relative z-20 mt-10 flex flex-col items-center space-y-4 w-full max-w-sm">
+                <div class="flex items-center space-x-4 w-full">
+                    <!-- 播放/暂停 -->
+                    <button id="playPauseBtn" onclick="togglePlayState()" class="flex-grow py-3.5 px-6 rounded-2xl bg-gradient-to-r from-valley-inhale to-valley-hold hover:brightness-110 text-white font-medium shadow-lg shadow-valley-inhale/20 active:scale-[0.98] transition-all flex items-center justify-center space-x-2" aria-pressed="false" aria-label="开始呼吸引导">
+                        <svg id="playIcon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
+                        </svg>
+                        <svg id="pauseIcon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                        <span id="playPauseText">开始呼吸</span>
+                    </button>
+
+                    <!-- 重置 -->
+                    <button id="resetBtn" onclick="resetSession()" class="py-3.5 px-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-slate-300 transition-all flex items-center justify-center space-x-2 shrink-0" title="重置本堂练习" aria-label="重置本堂练习">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 12a9 9 0 1 0 3-6.708M3 4v4h4" />
+                        </svg>
+                        <span class="text-sm font-medium">重置</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 右侧: 仪表控制中心 (占 5 格) -->
+        <section class="lg:col-span-5 space-y-6 max-h-[85vh] overflow-y-auto pr-1 no-scrollbar pb-8">
+            
+            <!-- 卡片 1: 呼吸模式选择 -->
+            <div class="rounded-3xl p-6 bg-valley-card border border-white/10 backdrop-blur-md">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-sans font-semibold text-slate-200 flex items-center space-x-2">
+                        <span class="w-1.5 h-4 rounded-full bg-valley-inhale"></span>
+                        <span>选择呼吸术 (Technique)</span>
+                    </h3>
+                </div>
+                
+                <div class="space-y-3">
+                    <!-- 模式：4-7-8 -->
+                    <button id="patternBtn_478" onclick="selectPattern('478')" class="w-full text-left p-4 rounded-2xl border transition-all relative overflow-hidden group border-valley-inhale/30 bg-valley-inhale/5">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <span class="font-bold text-sm text-slate-100 block group-hover:text-white">4-7-8 深度舒压睡眠法</span>
+                                <span class="text-xs text-slate-400 mt-1 block">经典哈他瑜伽呼吸，强效降低肾上腺素</span>
+                            </div>
+                            <span class="text-xs font-display font-semibold text-valley-inhale bg-valley-inhale/10 py-1 px-2.5 rounded-lg">极速放松</span>
+                        </div>
+                        <div class="flex space-x-2 mt-3 text-[11px] text-slate-400">
+                            <span class="flex items-center"><span class="w-1.5 h-1.5 rounded-full bg-valley-inhale mr-1.5"></span>吸气 4s</span>
+                            <span class="flex items-center"><span class="w-1.5 h-1.5 rounded-full bg-valley-hold mr-1.5"></span>屏气 7s</span>
+                            <span class="flex items-center"><span class="w-1.5 h-1.5 rounded-full bg-valley-exhale mr-1.5"></span>呼气 8s</span>
+                        </div>
+                    </button>
+
+                    <!-- 模式：Box Breathing -->
+                    <button id="patternBtn_box" onclick="selectPattern('box')" class="w-full text-left p-4 rounded-2xl border border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all group">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <span class="font-bold text-sm text-slate-100 block group-hover:text-white">4-4-4-4 战术箱式呼吸</span>
+                                <span class="text-xs text-slate-400 mt-1 block">海豹突击队战前专注法，重整中枢神经</span>
+                            </div>
+                            <span class="text-xs font-display font-semibold text-valley-hold bg-valley-hold/10 py-1 px-2.5 rounded-lg">高度专注</span>
+                        </div>
+                        <div class="flex space-x-2 mt-3 text-[11px] text-slate-400">
+                            <span>吸气 4s</span>
+                            <span>•</span>
+                            <span>内屏 4s</span>
+                            <span>•</span>
+                            <span>呼气 4s</span>
+                            <span>•</span>
+                            <span>外屏 4s</span>
+                        </div>
+                    </button>
+
+                    <!-- 模式：均等呼吸 -->
+                    <button id="patternBtn_equal" onclick="selectPattern('equal')" class="w-full text-left p-4 rounded-2xl border border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all group">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <span class="font-bold text-sm text-slate-100 block group-hover:text-white">5-5 谐振相干呼吸</span>
+                                <span class="text-xs text-slate-400 mt-1 block">平滑调节心率变异性(HRV)，平衡交感神经</span>
+                            </div>
+                            <span class="text-xs font-display font-semibold text-valley-exhale bg-valley-exhale/10 py-1 px-2.5 rounded-lg">情绪平衡</span>
+                        </div>
+                        <div class="flex space-x-2 mt-3 text-[11px] text-slate-400">
+                            <span>吸气 5s</span>
+                            <span>•</span>
+                            <span>呼气 5s</span>
+                        </div>
+                    </button>
+
+                    <!-- 模式：自定义 -->
+                    <button id="patternBtn_custom" onclick="selectPattern('custom')" class="w-full text-left p-4 rounded-2xl border border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all group">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <span class="font-bold text-sm text-slate-100 block group-hover:text-white">自定义呼吸流 (Custom)</span>
+                                <span class="text-xs text-slate-400 mt-1 block">根据您的身体耐受度调整气门节奏</span>
+                            </div>
+                            <span class="text-xs font-display font-semibold text-amber-300 bg-amber-400/10 py-1 px-2.5 rounded-lg">自由定制</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 卡片 2: 自定义参数调整 (仅在选择自定义时展开) -->
+            <div id="customControlsCard" class="hidden rounded-3xl p-6 bg-valley-card border border-amber-400/10 backdrop-blur-md space-y-4 animate-fadeIn">
+                <h3 class="font-sans font-semibold text-amber-300 flex items-center space-x-2">
+                    <span class="w-1.5 h-4 rounded-full bg-amber-400"></span>
+                    <span>自定义节拍阀门 (秒)</span>
+                </h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[11px] text-slate-400 block mb-1">吸气时长 (Inhale)</label>
+                        <input type="number" id="customInhale" value="4" min="2" max="15" onchange="updateCustomPattern()" class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-400 text-center font-display">
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-slate-400 block mb-1">屏气时长 (Hold In)</label>
+                        <input type="number" id="customHold" value="4" min="0" max="15" onchange="updateCustomPattern()" class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-400 text-center font-display">
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-slate-400 block mb-1">呼气时长 (Exhale)</label>
+                        <input type="number" id="customExhale" value="4" min="2" max="15" onchange="updateCustomPattern()" class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-400 text-center font-display">
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-slate-400 block mb-1">屏气时长 (Hold Out)</label>
+                        <input type="number" id="customHoldOut" value="4" min="0" max="15" onchange="updateCustomPattern()" class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-400 text-center font-display">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 卡片 3: 配色模板 -->
+            <div class="rounded-3xl p-6 bg-valley-card border border-white/10 backdrop-blur-md space-y-4">
+                <h3 class="font-sans font-semibold text-slate-200 flex items-center space-x-2">
+                    <span class="w-1.5 h-4 rounded-full bg-valley-accent"></span>
+                    <span>配色模板 (Palette)</span>
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <button id="themeBtn_ocean" onclick="selectTheme('ocean')" class="w-full p-3 rounded-2xl border border-valley-inhale/30 bg-valley-inhale/5 text-left transition-all" aria-pressed="true" aria-label="切换到深海静息配色">
+                        <span class="text-sm font-semibold text-slate-100 block">深海静息</span>
+                        <span class="text-[11px] text-slate-400 block mt-1">默认推荐</span>
+                        <span class="flex items-center space-x-1.5 mt-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-400"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-teal-300"></span>
+                        </span>
+                    </button>
+                    <button id="themeBtn_mist" onclick="selectTheme('mist')" class="w-full p-3 rounded-2xl border border-white/10 bg-white/5 text-left transition-all hover:bg-white/10 hover:border-white/20" aria-pressed="false" aria-label="切换到晨雾自然配色">
+                        <span class="text-sm font-semibold text-slate-100 block">晨雾自然</span>
+                        <span class="text-[11px] text-slate-400 block mt-1">柔和舒缓</span>
+                        <span class="flex items-center space-x-1.5 mt-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-cyan-300"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-violet-300"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-300"></span>
+                        </span>
+                    </button>
+                    <button id="themeBtn_night" onclick="selectTheme('night')" class="w-full p-3 rounded-2xl border border-white/10 bg-white/5 text-left transition-all hover:bg-white/10 hover:border-white/20" aria-pressed="false" aria-label="切换到夜空疗愈配色">
+                        <span class="text-sm font-semibold text-slate-100 block">夜空疗愈</span>
+                        <span class="text-[11px] text-slate-400 block mt-1">静谧专注</span>
+                        <span class="flex items-center space-x-1.5 mt-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-blue-300"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-purple-300"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-cyan-200"></span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 卡片 4: 声音混合器 -->
+            <div class="rounded-3xl p-6 bg-valley-card border border-white/10 backdrop-blur-md space-y-4">
+                <h3 class="font-sans font-semibold text-slate-200 flex items-center space-x-2">
+                    <span class="w-1.5 h-4 rounded-full bg-valley-hold"></span>
+                    <span>环境声学合成器 (Synth Mixer)</span>
+                </h3>
+                
+                <div class="space-y-3">
+                    <!-- 声像 1: 4Hz Theta 双耳脑电波 -->
+                    <div class="flex flex-col space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-300">脑波放松 (Theta Binaural Beat)</span>
+                            <span id="binauralVolValue" class="text-slate-500 font-display">40%</span>
+                        </div>
+                        <input type="range" id="binauralVolume" min="0" max="100" value="40" oninput="adjustMixer()" class="w-full h-1.5 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-valley-hold">
+                    </div>
+
+                    <!-- 声像 2: 潮汐引导白噪音 -->
+                    <div class="flex flex-col space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-300">海潮同步 (Wave Noise Generator)</span>
+                            <span id="noiseVolValue" class="text-slate-500 font-display">60%</span>
+                        </div>
+                        <input type="range" id="noiseVolume" min="0" max="100" value="60" oninput="adjustMixer()" class="w-full h-1.5 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-valley-exhale">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 卡片 5: 实时会话统计 -->
+            <div class="rounded-3xl p-6 bg-valley-card border border-white/10 backdrop-blur-md grid grid-cols-2 gap-4">
+                <div class="bg-slate-900/40 p-4 rounded-2xl border border-white/5 text-center">
+                    <span class="text-[10px] text-slate-500 tracking-widest uppercase block mb-1">完成周期</span>
+                    <span id="cyclesCompleted" class="font-display font-bold text-3xl text-valley-accent">0</span>
+                </div>
+                <div class="bg-slate-900/40 p-4 rounded-2xl border border-white/5 text-center">
+                    <span class="text-[10px] text-slate-500 tracking-widest uppercase block mb-1">练习时长</span>
+                    <span id="durationTracked" class="font-display font-bold text-3xl text-valley-inhale">00:00</span>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="w-full text-center py-4 border-t border-white/5 text-xs text-slate-600 bg-valley-deep/30">
+        <p>© 2026 息谷 BREATHE VALLEY • 数字理疗实验室</p>
+    </footer>
+
+    <!-- 弹窗: 机制介绍 & 使用引导 -->
+    <div id="helpModal" class="fixed inset-0 bg-valley-deep/90 backdrop-blur-lg flex items-center justify-center z-50 p-4 hidden" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="bg-valley-dark border border-white/10 rounded-3xl max-w-lg w-full p-6 md:p-8 space-y-6 relative max-h-[90vh] overflow-y-auto">
+            <button id="helpModalCloseBtn" onclick="toggleHelpModal(false)" class="absolute top-4 right-4 p-2 text-slate-500 hover:text-white transition-all" aria-label="关闭说明">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+
+            <div class="text-center">
+                <h3 class="font-display text-2xl font-bold text-white tracking-wide">如何通过息谷获得宁静？</h3>
+                <p class="text-xs text-valley-accent mt-1">THE SCIENCE OF CONSCIOUS BREATHING</p>
+            </div>
+
+            <div class="space-y-4 text-slate-300 text-sm leading-relaxed">
+                <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
+                    <h4 class="font-semibold text-slate-100 mb-1">🎨 视觉引导</h4>
+                    <p class="text-slate-400 text-xs">凝视中心流体球。它<b>放大</b>时开始用鼻子吸气，<b>保持静止</b>时屏住呼吸，<b>缩小时</b>用嘴巴缓缓吐气。让杂念随流体溢出。</p>
+                </div>
+
+                <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
+                    <h4 class="font-semibold text-slate-100 mb-1">🎵 声学助眠与振频</h4>
+                    <p class="text-slate-400 text-xs">我们建议佩戴耳机。合成器将产生纯正的<b>双耳差频</b>（4Hz），帮助您的大脑迅速向深度睡眠和无梦放松的 Theta 脑电波过渡。海潮会像自然潮汐一样，根据您的吸吐气自动改变响度。</p>
+                </div>
+
+                <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
+                    <h4 class="font-semibold text-slate-100 mb-1">🧘‍♂️ 4-7-8 经典方案</h4>
+                    <p class="text-slate-400 text-xs">哈佛医学专家推荐：吸气4秒强健神经，憋气7秒让血氧充分充盈，呼气8秒极大刺激迷走神经，从而在2分钟内拉低心率，清除精神紧绷。</p>
+                </div>
+
+                <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
+                    <h4 class="font-semibold text-slate-100 mb-1">⌨️ 快捷键</h4>
+                    <p class="text-slate-400 text-xs">空格: 开始/暂停 · M: 声音开关 · R: 重置 · ?: 帮助 · Esc: 关闭弹窗</p>
+                </div>
+            </div>
+
+            <button onclick="toggleHelpModal(false)" class="w-full py-3 rounded-2xl bg-gradient-to-r from-valley-inhale to-valley-hold text-white font-medium hover:brightness-110 active:scale-95 transition-all">
+                开启我的静心体验
+            </button>
+        </div>
+    </div>
+
+    <!-- 浮动提示框 -->
+    <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-valley-dark/90 border border-valley-inhale/20 backdrop-blur-md text-slate-300 text-xs px-4 py-2.5 rounded-full z-50 shadow-2xl opacity-0 transition-all duration-300 pointer-events-none flex items-center space-x-2">
+        <span class="w-1.5 h-1.5 rounded-full bg-valley-inhale animate-ping"></span>
+        <span id="toastText"></span>
+    </div>
+
+    <!-- 逻辑控制 Script -->
+    <script>
+        // ------------------ 状态与全局变量 ------------------
+        let isPlaying = false;
+        let isMuted = true;
+        let currentPatternKey = '478';
+        let currentThemeKey = 'ocean';
+
+        const themePresets = {
+            ocean: {
+                name: '深海静息',
+                vars: {
+                    '--valley-deep': '8 18 34',
+                    '--valley-dark': '15 30 51',
+                    '--valley-card': '28 46 72',
+                    '--valley-accent': '125 241 211',
+                    '--valley-inhale': '56 189 248',
+                    '--valley-hold': '129 140 248',
+                    '--valley-exhale': '45 212 191',
+                    '--valley-bg-base': '5 13 26',
+                    '--valley-bg-spot-1': '56 189 248',
+                    '--valley-bg-spot-2': '129 140 248',
+                    '--valley-bg-spot-3': '45 212 191',
+                },
+                phases: {
+                    inhale: '#38BDF8',
+                    hold: '#818CF8',
+                    exhale: '#2DD4BF',
+                    holdOut: '#8AA0B6',
+                }
+            },
+            mist: {
+                name: '晨雾自然',
+                vars: {
+                    '--valley-deep': '18 30 35',
+                    '--valley-dark': '28 44 50',
+                    '--valley-card': '39 58 65',
+                    '--valley-accent': '250 204 145',
+                    '--valley-inhale': '125 211 252',
+                    '--valley-hold': '196 181 253',
+                    '--valley-exhale': '110 231 183',
+                    '--valley-bg-base': '15 24 29',
+                    '--valley-bg-spot-1': '125 211 252',
+                    '--valley-bg-spot-2': '196 181 253',
+                    '--valley-bg-spot-3': '252 211 153',
+                },
+                phases: {
+                    inhale: '#7DD3FC',
+                    hold: '#C4B5FD',
+                    exhale: '#6EE7B7',
+                    holdOut: '#9AA8B0',
+                }
+            },
+            night: {
+                name: '夜空疗愈',
+                vars: {
+                    '--valley-deep': '14 14 30',
+                    '--valley-dark': '23 23 44',
+                    '--valley-card': '33 35 63',
+                    '--valley-accent': '191 219 254',
+                    '--valley-inhale': '96 165 250',
+                    '--valley-hold': '167 139 250',
+                    '--valley-exhale': '103 232 249',
+                    '--valley-bg-base': '10 10 22',
+                    '--valley-bg-spot-1': '96 165 250',
+                    '--valley-bg-spot-2': '167 139 250',
+                    '--valley-bg-spot-3': '103 232 249',
+                },
+                phases: {
+                    inhale: '#60A5FA',
+                    hold: '#A78BFA',
+                    exhale: '#67E8F9',
+                    holdOut: '#8D93C8',
+                }
+            }
+        };
+
+        function getThemePreset(key) {
+            return themePresets[key] || themePresets.ocean;
+        }
+
+        function getPhaseColor(type) {
+            const phases = getThemePreset(currentThemeKey).phases;
+            if (type === 'inhale') return phases.inhale;
+            if (type === 'exhale') return phases.exhale;
+            if (type === 'hold_out') return phases.holdOut;
+            return phases.hold;
+        }
+
+        function createStep(name, sub, duration, type, scaleStart, scaleEnd, soundClass) {
+            return {
+                name,
+                sub,
+                duration,
+                type,
+                scaleStart,
+                scaleEnd,
+                color: getPhaseColor(type),
+                soundClass
+            };
+        }
+        
+        // 预设呼吸模式参数组
+        const patterns = {
+            '478': [
+                createStep('吸气', 'Inhale', 4, 'inhale', 1.0, 1.8, 'inhale'),
+                createStep('屏气', 'Hold', 7, 'hold_in', 1.8, 1.8, 'hold'),
+                createStep('呼气', 'Exhale', 8, 'exhale', 1.8, 1.0, 'exhale')
+            ],
+            'box': [
+                createStep('吸气', 'Inhale', 4, 'inhale', 1.0, 1.8, 'inhale'),
+                createStep('屏气', 'Hold In', 4, 'hold_in', 1.8, 1.8, 'hold'),
+                createStep('呼气', 'Exhale', 4, 'exhale', 1.8, 1.0, 'exhale'),
+                createStep('屏气', 'Hold Out', 4, 'hold_out', 1.0, 1.0, 'hold')
+            ],
+            'equal': [
+                createStep('吸气', 'Inhale', 5, 'inhale', 1.0, 1.8, 'inhale'),
+                createStep('呼气', 'Exhale', 5, 'exhale', 1.8, 1.0, 'exhale')
+            ],
+            'custom': [
+                createStep('吸气', 'Inhale', 4, 'inhale', 1.0, 1.8, 'inhale'),
+                createStep('屏气', 'Hold In', 4, 'hold_in', 1.8, 1.8, 'hold'),
+                createStep('呼气', 'Exhale', 4, 'exhale', 1.8, 1.0, 'exhale'),
+                createStep('屏气', 'Hold Out', 4, 'hold_out', 1.0, 1.0, 'hold')
+            ]
+        };
+
+        let activeSteps = [...patterns['478']];
+        let currentStepIndex = 0;
+        let stepProgressMs = 0; // 当前行为微秒步进
+        let lastFrameTime = 0;
+        let ringCircumference = 1150;
+        let animationFrameId = null;
+        let lastFocusedBeforeModal = null;
+
+        function requestFrame(callback) {
+            if (typeof window.requestAnimationFrame === 'function') {
+                return window.requestAnimationFrame(callback);
+            }
+            return window.setTimeout(() => callback(Date.now()), 16);
+        }
+
+        function cancelFrame(frameId) {
+            if (!frameId) return;
+            if (typeof window.cancelAnimationFrame === 'function') {
+                window.cancelAnimationFrame(frameId);
+                return;
+            }
+            window.clearTimeout(frameId);
+        }
+
+        function updatePlayButtonUI(playing, label) {
+            const playIcon = document.getElementById('playIcon');
+            const pauseIcon = document.getElementById('pauseIcon');
+            const btnText = document.getElementById('playPauseText');
+            const btn = document.getElementById('playPauseBtn');
+
+            if (playing) {
+                playIcon.classList.add('hidden');
+                pauseIcon.classList.remove('hidden');
+                btn.className = "flex-grow py-3.5 px-6 rounded-2xl bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-400 hover:to-rose-500 text-white font-medium shadow-lg shadow-red-500/10 active:scale-[0.98] transition-all flex items-center justify-center space-x-2";
+            } else {
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+                btn.className = "flex-grow py-3.5 px-6 rounded-2xl bg-gradient-to-r from-valley-inhale to-valley-hold hover:brightness-110 text-white font-medium shadow-lg shadow-valley-inhale/20 active:scale-[0.98] transition-all flex items-center justify-center space-x-2";
+            }
+
+            btnText.innerText = label;
+            btn.setAttribute('aria-pressed', playing ? 'true' : 'false');
+            btn.setAttribute('aria-label', label);
+        }
+
+        function updateSoundButtonUI() {
+            const onIcon = document.getElementById('soundOnIcon');
+            const offIcon = document.getElementById('soundOffIcon');
+            const btn = document.getElementById('soundToggleBtn');
+            const hint = btn.querySelector('div');
+            const enabled = !isMuted;
+
+            if (enabled) {
+                onIcon.classList.remove('hidden');
+                offIcon.classList.add('hidden');
+                btn.classList.add('text-valley-accent', 'border-valley-accent/30', 'bg-valley-accent/5');
+                hint.innerText = "声学引导已开启";
+                btn.setAttribute('aria-label', '关闭声音引导');
+            } else {
+                onIcon.classList.add('hidden');
+                offIcon.classList.remove('hidden');
+                btn.classList.remove('text-valley-accent', 'border-valley-accent/30', 'bg-valley-accent/5');
+                hint.innerText = "声学引导已关闭";
+                btn.setAttribute('aria-label', '开启声音引导');
+            }
+
+            btn.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+        }
+
+        function recolorPatternSteps() {
+            Object.values(patterns).forEach((steps) => {
+                steps.forEach((step) => {
+                    step.color = getPhaseColor(step.type);
+                });
+            });
+        }
+
+        function updateThemeButtons() {
+            const keys = ['ocean', 'mist', 'night'];
+            keys.forEach((key) => {
+                const btn = document.getElementById(`themeBtn_${key}`);
+                if (!btn) return;
+                if (key === currentThemeKey) {
+                    btn.className = "w-full p-3 rounded-2xl border border-valley-inhale/30 bg-valley-inhale/5 text-left transition-all";
+                    btn.setAttribute('aria-pressed', 'true');
+                } else {
+                    btn.className = "w-full p-3 rounded-2xl border border-white/10 bg-white/5 text-left transition-all hover:bg-white/10 hover:border-white/20";
+                    btn.setAttribute('aria-pressed', 'false');
+                }
+            });
+        }
+
+        function applyThemePreset(key, notify = false) {
+            currentThemeKey = themePresets[key] ? key : 'ocean';
+            const preset = getThemePreset(currentThemeKey);
+
+            Object.entries(preset.vars).forEach(([varName, value]) => {
+                document.documentElement.style.setProperty(varName, value);
+            });
+
+            recolorPatternSteps();
+            activeSteps = [...patterns[currentPatternKey]];
+            if (currentStepIndex >= activeSteps.length) {
+                currentStepIndex = 0;
+                stepProgressMs = 0;
+            }
+
+            if (activeSteps.length) {
+                updateVisualsForStep(activeSteps[currentStepIndex], currentStepIndex);
+            }
+
+            updateThemeButtons();
+            if (notify) {
+                showToast(`配色已切换：${preset.name}`);
+            }
+        }
+
+        function selectTheme(key) {
+            if ((themePresets[key] ? key : 'ocean') === currentThemeKey) return;
+            applyThemePreset(key, true);
+        }
+
+        function isModalOpen() {
+            return !document.getElementById('helpModal').classList.contains('hidden');
+        }
+
+        function isShortcutBlockedTarget(target) {
+            if (!(target instanceof HTMLElement)) return false;
+            if (target.isContentEditable) return true;
+            return target.closest('input, textarea, select, button, [contenteditable="true"]') !== null;
+        }
+
+        function handleGlobalShortcuts(event) {
+            if (event.defaultPrevented) return;
+            if (isShortcutBlockedTarget(event.target)) return;
+
+            const key = event.key.toLowerCase();
+            const allowInModal = event.key === 'Escape' || event.key === '?' || (event.shiftKey && event.key === '/');
+            if (isModalOpen() && !allowInModal) return;
+
+            if (event.key === ' ') {
+                event.preventDefault();
+                togglePlayState();
+                return;
+            }
+
+            if (key === 'm') {
+                event.preventDefault();
+                toggleSound();
+                return;
+            }
+
+            if (key === 'r') {
+                event.preventDefault();
+                resetSession();
+                return;
+            }
+
+            if (event.key === '?' || (event.shiftKey && event.key === '/')) {
+                event.preventDefault();
+                toggleHelpModal(!isModalOpen());
+                return;
+            }
+
+            if (event.key === 'Escape' && isModalOpen()) {
+                event.preventDefault();
+                toggleHelpModal(false);
+            }
+        }
+
+        // 统计数据
+        let totalPracticeSeconds = 0;
+        let completedCyclesCount = 0;
+        let sessionTimerInterval = null;
+
+        // ------------------ WEB AUDIO API 合成器模块 ------------------
+        let audioCtx = null;
+        
+        // 声音节点引用
+        let masterGain = null;
+        let thetaLeftOsc = null;
+        let thetaRightOsc = null;
+        let binauralGain = null;
+        
+        let noiseSource = null;
+        let noiseGain = null;
+        let noiseFilter = null;
+        
+        // 声音初始化控制
+        function initSynth() {
+            if (audioCtx) return;
+
+            try {
+                // 创建 AudioContext
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // 1. 控音总阀
+                masterGain = audioCtx.createGain();
+                masterGain.gain.setValueAtTime(isMuted ? 0 : 0.6, audioCtx.currentTime);
+                masterGain.connect(audioCtx.destination);
+
+                // 2. 双耳差频合成 (左耳 100Hz, 右耳 104Hz 产生 4Hz Theta 脑波差)
+                thetaLeftOsc = audioCtx.createOscillator();
+                thetaLeftOsc.type = 'sine';
+                thetaLeftOsc.frequency.setValueAtTime(100, audioCtx.currentTime); // 100Hz
+
+                thetaRightOsc = audioCtx.createOscillator();
+                thetaRightOsc.type = 'sine';
+                thetaRightOsc.frequency.setValueAtTime(104, audioCtx.currentTime); // 104Hz (100 + 4Hz)
+
+                // 立体声声道控制
+                const pannerLeft = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+                const pannerRight = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+                
+                binauralGain = audioCtx.createGain();
+                const initBinauralVol = document.getElementById('binauralVolume').value / 100;
+                binauralGain.gain.setValueAtTime(initBinauralVol * 0.5, audioCtx.currentTime);
+
+                if (pannerLeft && pannerRight) {
+                    pannerLeft.pan.setValueAtTime(-1, audioCtx.currentTime);
+                    pannerRight.pan.setValueAtTime(1, audioCtx.currentTime);
+                    
+                    thetaLeftOsc.connect(pannerLeft).connect(binauralGain);
+                    thetaRightOsc.connect(pannerRight).connect(binauralGain);
+                } else {
+                    thetaLeftOsc.connect(binauralGain);
+                    thetaRightOsc.connect(binauralGain);
+                }
+
+                binauralGain.connect(masterGain);
+                thetaLeftOsc.start(0);
+                thetaRightOsc.start(0);
+
+                // 3. 潮汐白噪音生成器
+                const bufferSize = 2 * audioCtx.sampleRate;
+                const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const output = noiseBuffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    output[i] = Math.random() * 2 - 1;
+                }
+
+                noiseSource = audioCtx.createBufferSource();
+                noiseSource.buffer = noiseBuffer;
+                noiseSource.loop = true;
+
+                noiseFilter = audioCtx.createBiquadFilter();
+                noiseFilter.type = 'lowpass';
+                noiseFilter.frequency.setValueAtTime(350, audioCtx.currentTime); // 温暖低沉的白噪音滤波
+
+                noiseGain = audioCtx.createGain();
+                const initNoiseVol = document.getElementById('noiseVolume').value / 100;
+                noiseGain.gain.setValueAtTime(initNoiseVol * 0.2, audioCtx.currentTime); // 默认系数
+
+                noiseSource.connect(noiseFilter).connect(noiseGain).connect(masterGain);
+                noiseSource.start(0);
+
+            } catch (e) {
+                console.error("Web Audio API 初始化失败，浏览器可能受限:", e);
+                showToast("音频引擎初始化异常，请检查浏览器权限");
+            }
+        }
+
+        // 颂钵敲击合音 (Tibetan Singing Bowl) - 切换呼吸动作时触发
+        function playSingingBowl(type) {
+            if (!audioCtx || isMuted) return;
+
+            const now = audioCtx.currentTime;
+            
+            // 基础磬音主频
+            let baseFreq = 220; // 对应 A3，空灵低缓
+            if (type === 'inhale') baseFreq = 220;
+            if (type === 'hold_in') baseFreq = 277.18; // C#4
+            if (type === 'exhale') baseFreq = 329.63; // E4
+
+            // 生成金属复合谐音 (金属击乐具有丰富的非谐谐音群)
+            const partials = [1, 1.9, 2.8, 3.1, 4.2];
+            const gains = [0.5, 0.25, 0.15, 0.1, 0.05];
+
+            partials.forEach((ratio, index) => {
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(baseFreq * ratio, now);
+                
+                // 快速击打，长衰减
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(gains[index] * 0.3, now + 0.08);
+                gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 4.0); // 4秒缓慢消失
+                
+                osc.connect(gainNode).connect(masterGain);
+                osc.start(now);
+                osc.stop(now + 4.2);
+            });
+        }
+
+        // 动态调制白噪/海浪声的音量
+        function modulateTideVolume(normalPercent, phaseType) {
+            if (!audioCtx || isMuted) return;
+
+            const baseGain = document.getElementById('noiseVolume').value / 100;
+            let targetVol = 0;
+
+            if (phaseType === 'inhale') {
+                // 吸气：海浪渐涨
+                targetVol = normalPercent * baseGain * 0.45;
+                // 动态升高滤波截止频率，模拟吸气气流感的变明亮
+                noiseFilter.frequency.setValueAtTime(300 + (normalPercent * 400), audioCtx.currentTime);
+            } else if (phaseType === 'exhale') {
+                // 呼气：海浪渐退
+                targetVol = (1 - normalPercent) * baseGain * 0.45;
+                noiseFilter.frequency.setValueAtTime(200 + ((1 - normalPercent) * 450), audioCtx.currentTime);
+            } else {
+                // 屏气：风平浪静
+                targetVol = baseGain * 0.05;
+                noiseFilter.frequency.setValueAtTime(250, audioCtx.currentTime);
+            }
+
+            noiseGain.gain.setValueAtTime(targetVol, audioCtx.currentTime);
+        }
+
+        // ------------------ 状态管理 ------------------
+
+        function toggleSound() {
+            isMuted = !isMuted;
+
+            if (!isMuted) {
+                // 第一次触发声音引导时，初始化合成器
+                if (!audioCtx) {
+                    initSynth();
+                } else {
+                    masterGain.gain.setValueAtTime(0.6, audioCtx.currentTime);
+                }
+                showToast("声学理疗引擎已启动，建议佩戴耳机");
+            } else {
+                if (masterGain && audioCtx) {
+                    masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
+                }
+                showToast("声音引导已静音");
+            }
+
+            updateSoundButtonUI();
+        }
+
+        function adjustMixer() {
+            const binVol = document.getElementById('binauralVolume').value;
+            const noiseVol = document.getElementById('noiseVolume').value;
+
+            document.getElementById('binauralVolValue').innerText = binVol + "%";
+            document.getElementById('noiseVolValue').innerText = noiseVol + "%";
+
+            if (!audioCtx) return;
+
+            // 实时调节增益器的基准值
+            binauralGain.gain.setValueAtTime((binVol / 100) * 0.5, audioCtx.currentTime);
+        }
+
+        // 选择呼吸术
+        function selectPattern(key) {
+            currentPatternKey = key;
+            activeSteps = [...patterns[key]];
+            
+            // 清理状态
+            resetSession();
+
+            // 更新选项卡高亮样式
+            const btnIds = ['478', 'box', 'equal', 'custom'];
+            btnIds.forEach(id => {
+                const btn = document.getElementById(`patternBtn_${id}`);
+                if (id === key) {
+                    btn.className = "w-full text-left p-4 rounded-2xl border transition-all relative overflow-hidden group border-valley-inhale/30 bg-valley-inhale/5";
+                } else {
+                    btn.className = "w-full text-left p-4 rounded-2xl border border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all group";
+                }
+            });
+
+            // 联动控制自定义面板的显隐
+            const customCard = document.getElementById('customControlsCard');
+            if (key === 'custom') {
+                customCard.classList.remove('hidden');
+            } else {
+                customCard.classList.add('hidden');
+            }
+
+            // 更新当前面板显示的数值
+            updateVisualsForStep(activeSteps[0], 0);
+            showToast(`已成功载入: ${getPatternName(key)}`);
+        }
+
+        function getPatternName(key) {
+            if(key === '478') return '4-7-8 深度舒压法';
+            if(key === 'box') return '战术箱式呼吸';
+            if(key === 'equal') return '均等相干呼吸';
+            return '自定义呼吸流';
+        }
+
+        // 自定义数值更新
+        function updateCustomPattern() {
+            const inh = parseInt(document.getElementById('customInhale').value) || 4;
+            const hld = parseInt(document.getElementById('customHold').value) || 0;
+            const exh = parseInt(document.getElementById('customExhale').value) || 4;
+            const hldOut = parseInt(document.getElementById('customHoldOut').value) || 0;
+
+            const customConfig = [];
+            customConfig.push(createStep('吸气', 'Inhale', inh, 'inhale', 1.0, 1.8, 'inhale'));
+            
+            if (hld > 0) {
+                customConfig.push(createStep('屏气', 'Hold In', hld, 'hold_in', 1.8, 1.8, 'hold'));
+            }
+            
+            customConfig.push(createStep('呼气', 'Exhale', exh, 'exhale', 1.8, 1.0, 'exhale'));
+            
+            if (hldOut > 0) {
+                customConfig.push(createStep('屏气', 'Hold Out', hldOut, 'hold_out', 1.0, 1.0, 'hold'));
+            }
+
+            patterns['custom'] = customConfig;
+            
+            if (currentPatternKey !== 'custom') return;
+
+            activeSteps = [...customConfig];
+            
+            if (!isPlaying) {
+                resetSession();
+                return;
+            }
+
+            if (currentStepIndex >= activeSteps.length) {
+                currentStepIndex = 0;
+            }
+            stepProgressMs = 0;
+            updateVisualsForStep(activeSteps[currentStepIndex], currentStepIndex);
+            playSingingBowl(activeSteps[currentStepIndex].type);
+        }
+
+        // ------------------ 呼吸动画与引擎环 (核心渲染器) ------------------
+        
+        function animateBreathingCircle(timestamp) {
+            if (!isPlaying) {
+                animationFrameId = null;
+                return;
+            }
+
+            if (!lastFrameTime) lastFrameTime = timestamp;
+            const elapsed = timestamp - lastFrameTime;
+            lastFrameTime = timestamp;
+
+            const currentStep = activeSteps[currentStepIndex];
+            if (!currentStep) {
+                if (!activeSteps.length) {
+                    isPlaying = false;
+                    animationFrameId = null;
+                    showToast("当前呼吸节拍不可用，请重试");
+                    return;
+                }
+                currentStepIndex = 0;
+                stepProgressMs = 0;
+                updateVisualsForStep(activeSteps[0], 0);
+                animationFrameId = requestFrame(animateBreathingCircle);
+                return;
+            }
+            const stepDurationMs = currentStep.duration * 1000;
+            
+            stepProgressMs += elapsed;
+
+            // 获取当前节点的百分比 (0.00 ~ 1.00)
+            let progressNormal = stepProgressMs / stepDurationMs;
+            if (progressNormal >= 1.0) {
+                progressNormal = 1.0;
+            }
+
+            // 1. 拟合缓动算法实现平滑缩放
+            const easedNormal = easeInOutQuad(progressNormal);
+            const currentScale = currentStep.scaleStart + (currentStep.scaleEnd - currentStep.scaleStart) * easedNormal;
+
+            // 2. 变换主要流体球的大小及液态形变速度
+            const b1 = document.getElementById('liquidBall1');
+            const b2 = document.getElementById('liquidBall2');
+            
+            b1.style.transform = `scale(${currentScale})`;
+            b2.style.transform = `scale(${currentScale * 0.95}) rotate(${timestamp * 0.015}deg)`;
+
+            // 3. 动态光晕色彩流溢
+            const glow = document.getElementById('ambientGlow');
+            glow.style.transform = `scale(${currentScale * 1.2})`;
+
+            // 4. 计算外环进度条偏移
+            const ringOffset = ringCircumference - (ringCircumference * progressNormal);
+            document.getElementById('progressRing').style.strokeDashoffset = ringOffset;
+
+            // 5. 声学频率动态调制
+            modulateTideVolume(progressNormal, currentStep.type);
+
+            // 6. 更新核心倒计时秒数
+            const secondsLeft = Math.ceil((stepDurationMs - stepProgressMs) / 1000);
+            document.getElementById('breathTimer').innerText = String(Math.max(0, secondsLeft)).padStart(2, '0');
+
+            // 如果这一行为节点结束，流转到下一阶段
+            if (stepProgressMs >= stepDurationMs) {
+                const carryOverMs = stepProgressMs - stepDurationMs;
+                moveToNextStep(carryOverMs);
+            }
+
+            animationFrameId = requestFrame(animateBreathingCircle);
+        }
+
+        // 缓动曲线
+        function easeInOutQuad(t) {
+            return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+        }
+
+        // 流转动作至下一步
+        function moveToNextStep(carryOverMs = 0) {
+            stepProgressMs = Math.max(0, carryOverMs);
+            currentStepIndex++;
+
+            // 经历完一次完整周期
+            if (currentStepIndex >= activeSteps.length) {
+                currentStepIndex = 0;
+                completedCyclesCount++;
+                document.getElementById('cyclesCompleted').innerText = completedCyclesCount;
+                
+                // 周期完成触发微小涟漪特效
+                triggerRipple();
+            }
+
+            const nextStep = activeSteps[currentStepIndex];
+            updateVisualsForStep(nextStep, currentStepIndex);
+            playSingingBowl(nextStep.type);
+        }
+
+        // 触发圆环向外辐射波纹
+        function triggerRipple() {
+            const rip = document.getElementById('pulseRipple');
+            rip.classList.remove('opacity-0', 'scale-100');
+            rip.style.transition = 'none';
+            rip.style.transform = 'scale(1)';
+            rip.style.opacity = '0.6';
+            
+            // 强制渲染重绘
+            void rip.offsetWidth;
+            
+            rip.style.transition = 'all 1.2s cubic-bezier(0.1, 0.8, 0.3, 1)';
+            rip.style.transform = 'scale(2.2)';
+            rip.style.opacity = '0';
+        }
+
+        // 根据步骤数据更新外围视觉静态基色
+        function updateVisualsForStep(step, index) {
+            document.getElementById('breathAction').innerText = step.name;
+            document.getElementById('breathSubAction').innerText = step.sub;
+            
+            // 动态调节核心色调
+            const progressRing = document.getElementById('progressRing');
+            const ambientGlow = document.getElementById('ambientGlow');
+            
+            progressRing.style.stroke = step.color;
+            ambientGlow.style.backgroundColor = step.color;
+
+            // 更改文字颜色过渡
+            const textAction = document.getElementById('breathAction');
+            textAction.style.color = step.color;
+
+            // 重置倒计时字面量
+            document.getElementById('breathTimer').innerText = String(step.duration).padStart(2, '0');
+        }
+
+        // ------------------ 全局按钮动作 ------------------
+
+        // 播放与暂停切换
+        function togglePlayState() {
+            isPlaying = !isPlaying;
+
+            if (isPlaying) {
+                if (!activeSteps.length) {
+                    isPlaying = false;
+                    showToast("当前呼吸节拍不可用，请重试");
+                    return;
+                }
+                if (currentStepIndex < 0 || currentStepIndex >= activeSteps.length) {
+                    currentStepIndex = 0;
+                    stepProgressMs = 0;
+                }
+
+                // 如果开启了声音但还没初始化 AudioContext 
+                if (!isMuted && !audioCtx) {
+                    initSynth();
+                } else if (!isMuted && masterGain) {
+                    masterGain.gain.setValueAtTime(0.6, audioCtx.currentTime);
+                }
+
+                updatePlayButtonUI(true, "暂停舒缓");
+
+                // 启动动画和会话计时器
+                cancelFrame(animationFrameId);
+                animationFrameId = null;
+                lastFrameTime = 0;
+                animationFrameId = requestFrame(animateBreathingCircle);
+                
+                // 启动乐钟合音
+                const currentStep = activeSteps[currentStepIndex] || activeSteps[0];
+                playSingingBowl(currentStep.type);
+                
+                // 累积时间统计
+                if (sessionTimerInterval) {
+                    clearInterval(sessionTimerInterval);
+                }
+                sessionTimerInterval = setInterval(() => {
+                    totalPracticeSeconds++;
+                    const minutes = String(Math.floor(totalPracticeSeconds / 60)).padStart(2, '0');
+                    const seconds = String(totalPracticeSeconds % 60).padStart(2, '0');
+                    document.getElementById('durationTracked').innerText = `${minutes}:${seconds}`;
+                }, 1000);
+
+                showToast("引导已开始，保持身体松弛...");
+            } else {
+                updatePlayButtonUI(false, "继续呼吸");
+
+                // 清除周期累加
+                clearInterval(sessionTimerInterval);
+                sessionTimerInterval = null;
+
+                // 声学降采样静音
+                if (masterGain && audioCtx) {
+                    masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
+                }
+                if (noiseGain && audioCtx) noiseGain.gain.setValueAtTime(0, audioCtx.currentTime);
+                cancelFrame(animationFrameId);
+                animationFrameId = null;
+
+                showToast("引导已暂停");
+            }
+        }
+
+        // 重置此轮会话
+        function resetSession() {
+            isPlaying = false;
+            clearInterval(sessionTimerInterval);
+            sessionTimerInterval = null;
+            cancelFrame(animationFrameId);
+            animationFrameId = null;
+            
+            currentStepIndex = 0;
+            stepProgressMs = 0;
+            totalPracticeSeconds = 0;
+            completedCyclesCount = 0;
+
+            // 界面重塑
+            document.getElementById('durationTracked').innerText = "00:00";
+            document.getElementById('cyclesCompleted').innerText = "0";
+            document.getElementById('progressRing').style.strokeDashoffset = String(ringCircumference);
+
+            updatePlayButtonUI(false, "开始呼吸");
+
+            // 还原球大小
+            const b1 = document.getElementById('liquidBall1');
+            const b2 = document.getElementById('liquidBall2');
+            b1.style.transform = `scale(1)`;
+            b2.style.transform = `scale(0.95)`;
+
+            if (masterGain && audioCtx) {
+                masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            }
+            if (noiseGain && audioCtx) {
+                noiseGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            }
+
+            updateVisualsForStep(activeSteps[0], 0);
+            showToast("练习数据已重置");
+        }
+
+        // 弹窗显隐
+        function toggleHelpModal(show) {
+            const modal = document.getElementById('helpModal');
+            const closeBtn = document.getElementById('helpModalCloseBtn');
+            const helpToggleBtn = document.getElementById('helpToggleBtn');
+            if (show) {
+                lastFocusedBeforeModal = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+                modal.classList.remove('hidden');
+                modal.setAttribute('aria-hidden', 'false');
+                helpToggleBtn?.setAttribute('aria-expanded', 'true');
+                document.body.classList.add('overflow-hidden');
+                closeBtn?.focus();
+            } else {
+                modal.classList.add('hidden');
+                modal.setAttribute('aria-hidden', 'true');
+                helpToggleBtn?.setAttribute('aria-expanded', 'false');
+                document.body.classList.remove('overflow-hidden');
+                lastFocusedBeforeModal?.focus();
+                lastFocusedBeforeModal = null;
+            }
+        }
+
+        // Toast 浮动通知
+        let toastTimeout;
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const text = document.getElementById('toastText');
+            
+            text.innerText = msg;
+            toast.style.opacity = '1';
+            toast.style.transform = 'translate(-50%, -10px)';
+
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translate(-50%, 0)';
+            }, 3000);
+        }
+
+        // ------------------ 页面挂载就绪初始化 ------------------
+        window.addEventListener('DOMContentLoaded', () => {
+            const progressRing = document.getElementById('progressRing');
+            ringCircumference = progressRing.getTotalLength();
+            progressRing.setAttribute('stroke-dasharray', String(ringCircumference));
+            progressRing.style.strokeDashoffset = String(ringCircumference);
+            applyThemePreset(currentThemeKey);
+            updatePlayButtonUI(false, "开始呼吸");
+            updateSoundButtonUI();
+
+            const helpModal = document.getElementById('helpModal');
+            helpModal.addEventListener('click', (event) => {
+                if (event.target === helpModal) {
+                    toggleHelpModal(false);
+                }
+            });
+            document.addEventListener('keydown', handleGlobalShortcuts);
+
+            // 首次展示时引导用户阅读说明
+            setTimeout(() => {
+                toggleHelpModal(true);
+            }, 800);
+        });
+    </script>
+</body>
+</html>
