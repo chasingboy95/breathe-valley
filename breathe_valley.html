@@ -149,7 +149,7 @@
                 <svg class="absolute w-full h-full rotate-[-90deg]">
                     <circle cx="50%" cy="50%" r="48%" class="stroke-slate-800 fill-none" stroke-width="2" />
                     <!-- 动态环形进度条 -->
-                    <circle id="progressRing" cx="50%" cy="50%" r="48%" class="stroke-valley-accent fill-none transition-all duration-100" stroke-width="3" stroke-dasharray="1150" stroke-dashoffset="1150" stroke-linecap="round" />
+                    <circle id="progressRing" cx="50%" cy="50%" r="48%" class="stroke-valley-accent fill-none transition-all duration-100" stroke-width="3" stroke-linecap="round" />
                 </svg>
 
                 <!-- 波动扩散光晕 (呼吸反馈涟漪) -->
@@ -770,8 +770,11 @@
             try {
                 // 创建 AudioContext
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                
-                // 1. 控音总阀
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+               
+               // 1. 控音总阀
                 masterGain = audioCtx.createGain();
                 masterGain.gain.setValueAtTime(isMuted ? 0 : 0.6, audioCtx.currentTime);
                 masterGain.connect(audioCtx.destination);
@@ -906,9 +909,12 @@
                 if (!audioCtx) {
                     initSynth();
                 } else {
-                    masterGain.gain.setValueAtTime(0.6, audioCtx.currentTime);
-                }
-                showToast("声学理疗引擎已启动，建议佩戴耳机");
+                    if (audioCtx.state === 'suspended') {
+                        audioCtx.resume();
+                    }
+                   masterGain.gain.setValueAtTime(0.6, audioCtx.currentTime);
+               }
+               showToast("声学理疗引擎已启动，建议佩戴耳机");
             } else {
                 if (masterGain && audioCtx) {
                     masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
@@ -930,7 +936,8 @@
 
             // 实时调节增益器的基准值
             binauralGain.gain.setValueAtTime((binVol / 100) * 0.5, audioCtx.currentTime);
-        }
+            noiseGain.gain.setValueAtTime((noiseVol / 100) * 0.2, audioCtx.currentTime);
+       }
 
         // 选择呼吸术
         function selectPattern(key) {
@@ -1006,8 +1013,9 @@
                 currentStepIndex = 0;
             }
             stepProgressMs = 0;
-            updateVisualsForStep(activeSteps[currentStepIndex], currentStepIndex);
-            playSingingBowl(activeSteps[currentStepIndex].type);
+           updateVisualsForStep(activeSteps[currentStepIndex], currentStepIndex);
+            lastFrameTime = 0;
+           playSingingBowl(activeSteps[currentStepIndex].type);
         }
 
         // ------------------ 呼吸动画与引擎环 (核心渲染器) ------------------
@@ -1059,7 +1067,11 @@
 
             // 3. 动态光晕色彩流溢
             const glow = document.getElementById('ambientGlow');
-            glow.style.transform = `scale(${currentScale * 1.2})`;
+            // modulate glow intensity and slight scale to avoid exceeding viewport on mobile
+            const glowScale = 1 + (currentScale - 1.0) * 0.25; // 1.0 → 1.2
+            const glowIntensity = 0.3 + (currentScale - 1.0) / 0.8 * 0.4; // 0.3 → 0.7
+            glow.style.transform = `scale(${glowScale})`;
+            glow.style.opacity = glowIntensity;
 
             // 4. 计算外环进度条偏移
             const ringOffset = ringCircumference - (ringCircumference * progressNormal);
@@ -1163,10 +1175,13 @@
                 if (!isMuted && !audioCtx) {
                     initSynth();
                 } else if (!isMuted && masterGain) {
-                    masterGain.gain.setValueAtTime(0.6, audioCtx.currentTime);
-                }
-
-                updatePlayButtonUI(true, "暂停舒缓");
+                    if (audioCtx.state === 'suspended') {
+                        audioCtx.resume();
+                    }
+                   masterGain.gain.setValueAtTime(0.6, audioCtx.currentTime);
+               }
+               
+               updatePlayButtonUI(true, "暂停舒缓");
 
                 // 启动动画和会话计时器
                 cancelFrame(animationFrameId);
@@ -1233,9 +1248,13 @@
             const b1 = document.getElementById('liquidBall1');
             const b2 = document.getElementById('liquidBall2');
             b1.style.transform = `scale(1)`;
-            b2.style.transform = `scale(0.95)`;
+           b2.style.transform = `scale(0.95)`;
+            // restore ambient glow to initial state
+            const glowEl = document.getElementById('ambientGlow');
+            glowEl.style.transform = 'scale(1)';
+            glowEl.style.opacity = '0.6';
 
-            if (masterGain && audioCtx) {
+           if (masterGain && audioCtx) {
                 masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
             }
             if (noiseGain && audioCtx) {
@@ -1311,3 +1330,4 @@
     </script>
 </body>
 </html>
+            <div class="relative w-[300px] h-[300px] md:w-[380px] md:h-[380px] flex items-center justify-center">
